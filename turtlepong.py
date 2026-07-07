@@ -1,49 +1,90 @@
 import turtle
 import random
 
+
+class Ball(turtle.Turtle):
+    def __init__(self, color):
+        super().__init__()
+        self.speed(0)
+        self.shape("circle")
+        self.color(color)
+        self.penup()
+
+    def move(self, speed):
+        self.forward(speed)
+
+    def reset(self):
+        self.goto(0, 0)
+        self.setheading(random.choice([0, 180]))
+
+    def bounce_y(self): # bounces from the top or bottom wall
+        self.setheading(360 - self.heading())
+
+    def bounce_x(self, x_position): # bounces from the player or cpu paddle
+        self.setheading(180 - self.heading() + random.randint(-30, 30))
+        self.setx(x_position)
+
+    def adjust_angle(self): # prevents vertical-like ball movement
+        angle = self.heading()
+        if 0 < angle < 20:
+            self.setheading(20)
+        elif 160 < angle < 180:
+            self.setheading(160)
+        elif 180 < angle < 200:
+            self.setheading(200)
+        elif 340 < angle < 360:
+            self.setheading(340)
+
+
+class Paddle(turtle.Turtle):
+    def __init__(self, x_position, color):
+        super().__init__()
+        self.penup()
+        self.speed(0)
+        self.color(color)
+        self.shape("square")
+        self.shapesize(stretch_wid=3, stretch_len=0.25)
+        self.goto(x_position, 0)
+
+    def move_up(self, amount):
+        if self.ycor() < screenHeight - 25:
+            self.sety(self.ycor() + amount)
+
+    def move_down(self, amount):
+        if self.ycor() > -screenHeight + 25:
+            self.sety(self.ycor() - amount)
+
+    def reset(self, x_position):
+        self.goto(x_position, 0)
+
+
 # ---SETUP---
 gameState = "menu"  # menu, playing, or gameOver
 
 screenWidth = 500
 screenHeight = 300
 ballSpeed = 4  # starting ball speed
-speedIncrease = 0.75 #standard amount the ball's speed increases by
+speedIncrease = 0.75  # standard amount the ball's speed increases by
 difficulty = "medium"
 
 window = turtle.Screen()
 window.bgcolor("black")
-window.tracer(0) #for smooth movement
+window.tracer(0)  # for smooth movement
 
-ball = turtle.Turtle()
-ball.speed(0)
-ball.shape("circle")
 turtle.colormode(255)
-ball.color(57, 255, 0)  # green color
-ball.penup()
-ball.setheading(random.choice([0, 180]))  # either goes to player or cpu first
+
+ball = Ball((57, 255, 0))
+ball.reset()
 
 boundry = turtle.Turtle()
 boundry.hideturtle()
 boundry.speed(0)
 boundry.pencolor("orange")  # boundary color
 
-player = turtle.Turtle()
-player.penup()
-player.speed(0)
-player.color("blue")
-player.shape("square")
-player.shapesize(stretch_wid=3, stretch_len=0.25)  # player hitbox and shape
-player.goto(-screenWidth + 20, 0)
-
 paddleSpeed = 15  # how fast the player and cpu move
 
-cpu = turtle.Turtle()
-cpu.penup()
-cpu.speed(0)
-cpu.color("red")
-cpu.shape("square")
-cpu.shapesize(stretch_wid=3, stretch_len=0.25)  # player hitbox and shape
-cpu.goto(screenWidth - 20, 0)
+player = Paddle(-screenWidth + 20, "blue")
+cpu = Paddle(screenWidth - 20, "red")
 
 score = 0
 scoreBoard = turtle.Turtle()
@@ -94,17 +135,17 @@ def showInstructions():
     ball.hideturtle()
 
     for row in range(len(menuText)):
-        for col in range(len(menuText[row])): #nested for loop to get index of the text and position
-            text = menuText[row][col] #sets text to the x, y coordinate
+        for col in range(len(menuText[row])): # gets index of text and position
+            text = menuText[row][col]
 
-            scoreBoard.goto(0, yPositions[row] - col * 40) #uses the index with scaling to make the text to go to the necessary area
-            scoreBoard.write(text, align="center", font=("Courier", 20, "normal")) #writes the text
+            scoreBoard.goto(0, yPositions[row] - col * 40) # gets the y position of the text
+            scoreBoard.write(text, align="center", font=("Courier", 20, "normal")) # writes the text
 
 def setBoundaries():
     boundry.clear()
     boundry.penup()
     boundry.goto(0, screenHeight)
-    while boundry.ycor() > -screenHeight:  # loop that makes dash lines from top to bottom
+    while boundry.ycor() > -screenHeight:  # creates dashed lines for the boundary
         boundry.sety(boundry.ycor() - 10)
         boundry.penup()
         boundry.sety(boundry.ycor() - 10)
@@ -114,24 +155,23 @@ def setBoundaries():
     boundry.goto(-screenWidth - 10, screenHeight)
 
     boundry.pendown()
-    boundry.goto(screenWidth + 10, screenHeight)  # makes a box
+    boundry.goto(screenWidth + 10, screenHeight)
     boundry.goto(screenWidth + 10, -screenHeight)
     boundry.goto(-screenWidth - 10, -screenHeight)
     boundry.goto(-screenWidth - 10, screenHeight)
 
 def startGame():
-    global gameState  # global so it can be modified
+    global gameState
 
-    if gameState != "menu":  # makes sure the game hasn't already started
+    if gameState != "menu":
         return
-    
+
     chooseDifficulty()
 
-    scoreBoard.clear()  # clears to prevent overlapping
+    scoreBoard.clear()
     setBoundaries()
 
-    ball.goto(0, 0)
-    ball.setheading(random.choice([0, 180]))  # randomizes the direction (player or cpu)
+    ball.reset()  # randomizes the direction (player or cpu)
     ball.showturtle()
     cpu.showturtle()
     player.showturtle()
@@ -140,33 +180,34 @@ def startGame():
 
     updateScore(False)  # writes the score but doesn't add a point
 
-    moveBall()  # starts the function that moves the ball
-    moveComputer()  # starts the function that makes the computer track the ball
+    # starts the ball and computer movement
+    moveBall()
+    moveComputer()
+
 
 def playAgain():
-    global score  # makes variables modifiable
+    global score
     global ballSpeed
     global gameState
 
-    score = 0  # resets score
+    score = 0
     ballSpeed = 4  # resets ball speed
     gameState = "menu"  # makes state menu so moveBall() and moveComputer() stop
 
-    ball.goto(0, 0)  # resets ball position
-    ball.setheading(random.choice([0, 180]))
+    ball.reset()
     player.showturtle()
     cpu.showturtle()
-    player.goto(-screenWidth + 20, 0)
-    cpu.goto(screenWidth - 20, 0)
+    player.reset(-screenWidth + 20)
+    cpu.reset(screenWidth - 20)
 
     updateScore(False)  # shows score but doesn't update score
 
-    showInstructions()  # reshows instructions when playing again
+    showInstructions()
 
 def updateScore(addScore):
     global score
 
-    if addScore:  # increments the score if told
+    if addScore:
         score += 1
     scoreBoard.clear()  # shows the score in the correct position
     scoreBoard.goto(-screenWidth - 50, screenHeight + 40)
@@ -174,9 +215,10 @@ def updateScore(addScore):
 
 def gameOver():
     global gameState
-    gameState = "gameOver"  # makes the state gameover for functions to react appropriately
+    gameState = "gameOver"
 
-    player.hideturtle()  # hides paddles
+    # hides paddles
+    player.hideturtle()
     cpu.hideturtle()
 
     scoreBoard.clear()
@@ -189,13 +231,13 @@ def gameOver():
     highScores = []
     try:
         with open("highscore.txt", 'r') as f:  # opens the highscore file
-            for line in f:  # takes each line in the file
+            for line in f:
                 highScores.append(int(line.strip()))  # adds it to a list to be sorted (because every line is a number)
-    except FileNotFoundError:  # if the file couldn't be found
-        print("LOG: Could not load save file\n")  # prints so it can be found in terminal
-        highScores = []  # just has empty list without save
+    except FileNotFoundError:
+        print("LOG: Could not load save file\n")
+        highScores = []  # empty list without saving the score
 
-    if score > 0 and difficulty == "hard": #only counts as high score if is in hard mode
+    if score > 0 and difficulty == "hard": # scores contribute to the leaderboard only in hard mode
         highScores.append(score)
     highScores.sort(reverse=True)  # sorts the list from highest to lowest
     highScores = highScores[:5]  # makes the list only five places long to show top five
@@ -224,59 +266,42 @@ def moveBall():
         return
 
     window.update()
-    ball.forward(ballSpeed)  # ball speed is increased over time for difficulty
+    ball.move(ballSpeed)  # ball speed is increased over time for difficulty
 
     if ball.ycor() > screenHeight - 10 or ball.ycor() < -screenHeight + 10:
-        ball.setheading(360 - ball.heading())  # if the ball touches a top wall
+        ball.bounce_y()  # if the ball touches a top wall
     if ball.xcor() < -screenWidth + 40 and ball.distance(player) < 50:  # if the ball touches the player
-        ball.setheading(
-            180 - ball.heading() + random.randint(-30, 30))  # move the ball the opposite direction with a random offset
-        ball.setx(-screenWidth + 41)  # in case of glitching make it go away from edge
+        ball.bounce_x(-screenWidth + 41)  # move the ball the opposite direction with a random offset
         updateScore(True)
 
         if ballSpeed < 15:  # makes sure the ball speed is less than 15 (this is too fast)
             ballSpeed += speedIncrease  # increases by difficulty amount
     if ball.xcor() > screenWidth - 40 and ball.distance(cpu) < 50:  # if the ball touches the computer
-        ball.setheading(180 - ball.heading() + random.randint(-30, 30))  # same logic as player collision
-
-        # makes sure the ball does not go almost straight up (making it boring and long for players to watch)
-        angle = ball.heading()
-        if 0 < angle < 20:
-            ball.setheading(20)
-        elif 160 < angle < 180:
-            ball.setheading(160)
-        elif 180 < angle < 200:
-            ball.setheading(200)
-        elif 340 < angle < 360:
-            ball.setheading(340)
-
-        ball.setx(screenWidth - 41)  # prevents glitching
+        ball.bounce_x(screenWidth - 41)  # same logic as player collision
+        ball.adjust_angle()  # makes sure the ball does not go almost straight up
     if ball.xcor() < -screenWidth:
         gameOver()  # game over if the ball has passed the width boundary
         return  # stops the ontimer call so the function ends
 
-
     window.ontimer(moveBall, 15)  # repeatedly calls the function every 15 milliseconds until stopped
 
 def moveUp():
-    if player.ycor() < screenHeight - 25 and gameState == "playing":
-        player.sety(player.ycor() + paddleSpeed)  # moves up if the game is running and player isn't touching the top
+    if gameState == "playing":
+        player.move_up(paddleSpeed)  # moves up if the game is running and player isn't touching the top
+
 def moveDown():
-    if player.ycor() > -screenHeight + 25 and gameState == "playing":
-        player.sety(player.ycor() - paddleSpeed)  # moves down if the game is running and player isn't touching bottom
-        
+    if gameState == "playing":
+        player.move_down(paddleSpeed)  # moves down if the game is running and player isn't touching bottom
 
 def moveComputer():
     if gameState == "playing":
         if abs(cpu.ycor() - ball.ycor()) > random.randint(5, 20):  # randomized computer movement
             if cpu.ycor() < ball.ycor() and cpu.ycor() < screenHeight - 25:
-                cpu.sety(
-                    cpu.ycor() + paddleSpeed)  # goes up if the ball is above the computer and less then the screen height (safety check)
+                cpu.move_up(paddleSpeed)  # goes up if the ball is above the computer and less than the screen height (safety check)
             elif cpu.ycor() > ball.ycor() and cpu.ycor() > -screenHeight + 25:
-                cpu.sety(cpu.ycor() - paddleSpeed)  # same for going down
+                cpu.move_down(paddleSpeed)  # same for going down
 
-
-    window.ontimer(moveComputer, 15)  # does this at same rate as moveBall()]
+    window.ontimer(moveComputer, 15)  # does this at same rate as moveBall()
 
 def onClick(x, y):
     window.listen()
@@ -294,7 +319,5 @@ window.onkey(moveDown, 's')
 window.onkey(playAgain, 'r')
 window.onclick(onClick)
 
-showInstructions()  # shows the instructions to start the loop
-window.mainloop() #continuously runs the program
-
-
+showInstructions()
+window.mainloop() # continuously runs the program
