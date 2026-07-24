@@ -1,12 +1,12 @@
 # Turtle Pong
 
-A fun and competitive Pong game built with Python's Turtle graphics library! Play against an AI opponent and try to achieve the highest score.
+A fun Pong game built using the Turtle library. Play against a CPU and try to achieve the highest score.
 
 ## Overview
 
-Turtle Pong is a classic Pong game where you control a paddle on the left side of the screen and compete against a computer-controlled AI opponent on the right. Rally the ball back and forth, earning points each time you hit the ball successfully. The game features three difficulty levels (Easy, Medium, and Hard) that affect ball speed and acceleration, making for increasingly challenging gameplay.
+Turtle Pong is a classic Pong game where you control a paddle on the left side of the screen and compete against the CPU on the right. Rally the ball back and forth, earning points each time you hit the ball successfully. There are three difficulty levels (Easy, Medium, and Hard) that affect ball speed and acceleration, making for increasingly challenging gameplay.
 
-## What You Need
+## Prerequisites
 
 - Python 3.x
 - The `turtle` module (included with standard Python installations)
@@ -32,7 +32,7 @@ The game will launch in a new window. Click anywhere on the screen to begin.
 
 ### Game Mechanics
 
-1. The ball starts at the center and moves toward either you or the AI
+1. The ball starts at the center and moves toward either you or the CPU
 2. Use your paddle to hit the ball back to the opponent
 3. You earn 1 point each time you successfully hit the ball
 4. If the ball passes your paddle, the game ends
@@ -49,14 +49,4 @@ When you start a game, you'll be prompted to choose a difficulty:
 
 ## Leaderboard
 
-Your top 5 scores are automatically saved and displayed when the game ends. **Note:** Only scores from Hard mode are saved to the leaderboard, so challenge yourself on the hardest difficulty to make your mark!
-
-## Game Features
-
-- **Three Difficulty Levels:** Customize your gaming experience
-- **AI Opponent:** Smart computer opponent with randomized movement
-- **Score Tracking:** Keep track of your best performances
-- **Leaderboard:** Compete against your own high scores (Hard mode only)
-- **Smooth Graphics:** Powered by Python's Turtle graphics for retro fun
-
-Enjoy the game and good luck beating your high scores!
+Your top 5 scores are automatically saved and displayed when the game ends. **Note:** Only scores from Hard mode are saved to the leaderboard.
